@@ -1,13 +1,12 @@
 '''  program lrdemo.py
   This program demonstrates a solution to a toy logistic regression problem
   using gradient descent in theano.
-  Convergence confirmed for w = +- 20 (with b=0), b = +- 10 (with w = 1) 
+  Convergence confirmed for w = +- 20 (with b=0), b = +- 10 (with w = 1)
   Convergence problems can occur - see
   http://www2.sas.com/proceedings/forum2008/360-2008.pdf
 '''
 
-# Questions: are we comparing sigmoids or binary [1,0]?
-# Can cross-entropy be replaced with MLL?
+# pylint: disable = bad-whitespace, invalid-name, no-member
 
 import argparse
 import numpy as np
@@ -16,15 +15,18 @@ from theano import tensor as T
 from theano import shared as S
 from theano import function as F
 
-# sigmoid function with arbitrary slope w and offset b
 
-def f(a,b,t):
-	return 1 / (1 + np.exp(-a*t-b))
+def f(ai,bi,t):
+    ''' sigmoid function with arbitrary slope ai
+	    and offset bi
+    '''
+    return 1 / (1 + np.exp(-ai*t-bi))
 
-# inverse of sigmoid function to help define plot range
-
-def invf(a,b,t):
-	return (np.log(t/(1-t)) - b) / a
+def invf(ai,bi,t):
+    ''' inverse of sigmoid function to help define
+        plot range
+    '''
+    return (np.log(t/(1-t)) - bi) / ai
 
 # optional parameters to specify w and b of the target function
 # and number of iterations
@@ -32,10 +34,10 @@ def invf(a,b,t):
 parser = argparse.ArgumentParser()
 parser.add_argument('-w', type = float, default = 0.2, dest='w')
 parser.add_argument('-b', type = float, default = 0.0, dest='b')
-parser.add_argument('-iter', type = int, default = 1000, dest='iter')
+parser.add_argument('-N', type = int, default = 1000, dest='N')
 wt = parser.parse_args().w
 bt = parser.parse_args().b
-iter = parser.parse_args().iter
+iterations = parser.parse_args().N
 
 #  generate training data set of four points equispaced in y
 
@@ -52,25 +54,23 @@ B = S(b)
 # symbolic computations for theano
 
 X = T.matrix()
-Y = T.vector()
-SIG = 1 / (1 + T.exp(-T.dot(X, W) - B))
-PREDICTION = SIG > 0.5
-XENT = -Y * T.log(SIG) - (1-Y) * T.log(1 - SIG)
-COST = XENT.mean()
-GW, GB = T.grad(COST, [W, B])
+y = T.vector()
+sig = 1 / (1 + T.exp(-T.dot(X, W) - B))
+xent = -y * T.log(sig) - (1-y) * T.log(1 - sig)
+cost = xent.mean()
+gw, gb = T.grad(cost, [W, B])
 
 # compile theano functions
 
 TRAIN = F(
-    inputs=[X, Y],
-    outputs=[PREDICTION, XENT, W, B],
-    updates=((W, W - 0.1 * GW), (B, B - 0.1 * GB)))
-PREDICT = F(inputs=[X], outputs=PREDICTION)
+    inputs=[X, y],
+    outputs=[W, B],
+    updates=((W, W - 0.1 * gw), (B, B - 0.1 * gb)))
 
 # train model
 
-for i in range(iter):
-    pred, err, W, B = TRAIN(xtarg, ytarg.flatten())
+for i in range(iterations):
+    W, B = TRAIN(xtarg, ytarg.flatten())
 
 # compare fitted results to intial model
 # why does a perfect fit not plot that way for nonzero b?
