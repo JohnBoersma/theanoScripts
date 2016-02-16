@@ -5,7 +5,7 @@ gains. This avoids actually calculating the
 matrices of derivatives.
 '''
 
-# pylint: disable = bad-whitespace, invalid-name, no-member, bad-continuation, pointless-string-statement
+# pylint: disable = bad-whitespace, invalid-name, no-member, bad-continuation
 
 import theano
 import theano.tensor as T
@@ -41,13 +41,10 @@ JV = T.Rop(y,W,V)
 f = theano.function([W,V,x], JV)
 print f([[1,1],[1,1]], [[2,2],[3,17]], [0,1])
 
-'''
-That is, the Jacobian of y with respect to W is x^T,
-which is then right-multiplied by V.
-For Rop, the first indices of grad multiplies V.
-
-Similarly for the L-operator:
-'''
+# That is, the Jacobian of y with respect to W is x^T,
+# which is then right-multiplied by V.
+# For Rop, the first indices of grad multiplies V.
+# Similarly for the L-operator:
 
 v = T.dvector()
 x = T.dvector()
@@ -56,9 +53,32 @@ VJ = T.Lop(y,W,v)
 f = theano.function([v,x], VJ)
 print f([2,2], [0,1])
 
-'''
-   Note that no explicit value of W is provided here - it's not needed
-   because the partial derivatives remove it. But for some reason this
-   doesn't work for Rop. I've asked on stack overflow what the deal is.
-   For Lop, the last indices of grad multiplies V.
-'''
+# Note that no explicit value of W is provided here - it's not needed
+# because the partial derivatives remove it. Grad works symbolically.
+# But for some reason this doesn't work for Rop.
+# I've asked on stack overflow what the deal is.
+# For Lop, the last indices of grad multiplies V.
+
+# Here's the first way to multiply a Hessian times a vector
+
+x = T.dvector()
+v = T.dvector()
+y = T.sum(x ** 2)
+gy = T.grad(y,x)
+vH = T.grad(T.sum(gy * v), x)
+f = theano.function([x,v], vH)
+print f([4,4], [2,2])
+
+# Or, can do the same using Rop:
+
+x = T.dvector()
+v = T.dvector()
+y = T.sum(x ** 2)
+gy = T.grad(y,x)
+Hv = T.Rop(gy, x, v)
+f = theano.function([x,v], Hv)
+print f([4,4], [2,2])
+
+# This works because of the symmetry of the Hessian matrix.
+# Which is faster in a specific case should be determine
+# by profilling.
