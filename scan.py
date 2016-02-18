@@ -1,6 +1,7 @@
 ''' This program explores the operation of the scan method in
     theano, following
     http://nbviewer.jupyter.org/gist/triangleinequality/1350873eebea33973e41
+    and the 'loop' section of the theano tutorial
 
     scan is theano's native iterator, more efficient than external Python iteration
     can iterate over loops, over a tensor, elements of a vector, etc
@@ -71,6 +72,10 @@ results = th.scan(fib, outputs_info=[{'initial':x0,'taps':[-2,-1]}],n_steps=i)[0
 
 f = th.function(inputs=[i,x0], outputs=results)
 print f(50, np.asarray([0,1], dtype=np.int32))
+
+# Computing tanh(x(t).dot(W) + b) elementwise
+
+
 
 
 
