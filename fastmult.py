@@ -56,8 +56,8 @@ print f([2,2], [0,1])
 # Note that no explicit value of W is provided here - it's not needed
 # because the partial derivatives remove it. Grad works symbolically.
 # But for some reason this doesn't work for Rop.
-# I've asked on stack overflow what the deal is.
-# For Lop, the last indices of grad multiplies V.
+# Lop can have the same problem with dot(x,W**1)
+# Omitting variables is just touchy in this way.
 
 # Here's the first way to multiply a Hessian times a vector
 
