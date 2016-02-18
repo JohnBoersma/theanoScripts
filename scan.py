@@ -73,13 +73,15 @@ results = th.scan(fib, outputs_info=[{'initial':x0,'taps':[-2,-1]}],n_steps=i)[0
 f = th.function(inputs=[i,x0], outputs=results)
 print f(50, np.asarray([0,1], dtype=np.int32))
 
-# Computing tanh(x(t).dot(W) + b) elementwise
+print '\ntanh(x(t).dot(W) + b) elementwise\n'
 
 X = T.matrix()
 W = T.matrix()
+# sym for symbolic
 b_sym = T.vector()
 
-# need to understand from here
+# scan iterates over the first index of sequences
+# so here, we iterate over a 2D matrix to get vectors
 
 results = th.scan(lambda v: T.tanh(T.dot(v,W) + b_sym), sequences=X)[0]
 compute_elementwise = th.function([X,W,b_sym], results)
@@ -87,12 +89,27 @@ compute_elementwise = th.function([X,W,b_sym], results)
 x = np.eye(2, dtype=th.config.floatX)
 w = np.ones((2,2), dtype=th.config.floatX)
 b = np.ones((2), dtype=th.config.floatX)
-b[1] = 2
 
 print (compute_elementwise(x,w,b))
 
 #comparison with numpy
 
 print (np.tanh(x.dot(w) + b))
+
+print '\nx(t) = tanh(x(t-1).dot(W) + y(t).dot(U) + p(T-t).dot(V))\n'
+
+X = T.vector()
+W = T.matrix()
+b_sym = T.vector()
+U = T.matrix()
+Y = T.matrix()
+V = T.matrix()
+P = T.matrix()
+
+# tm1 is t minus 1
+
+# need to understand from here
+results = th.scan(lambda y,p,x_tm1 : T.tanh(T.dot(x_tm1,W) + T.dot(y,U) + T.dot(p,V)),
+                          sequences = [Y,P[::-1]], outputs_info=[X])[0]
 
 
