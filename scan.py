@@ -75,8 +75,24 @@ print f(50, np.asarray([0,1], dtype=np.int32))
 
 # Computing tanh(x(t).dot(W) + b) elementwise
 
+X = T.matrix()
+W = T.matrix()
+b_sym = T.vector()
 
+# need to understand from here
 
+results = th.scan(lambda v: T.tanh(T.dot(v,W) + b_sym), sequences=X)[0]
+compute_elementwise = th.function([X,W,b_sym], results)
 
+x = np.eye(2, dtype=th.config.floatX)
+w = np.ones((2,2), dtype=th.config.floatX)
+b = np.ones((2), dtype=th.config.floatX)
+b[1] = 2
+
+print (compute_elementwise(x,w,b))
+
+#comparison with numpy
+
+print (np.tanh(x.dot(w) + b))
 
 
