@@ -107,9 +107,38 @@ V = T.matrix()
 P = T.matrix()
 
 # tm1 is t minus 1
+# that is, the initialization state the first time
+# and the output each other time
 
-# need to understand from here
+# [::-1] is an example of Python "step" or "stride" slicing. 
+#  with -1, his reverses the order of a list
+# scanning over two variables means 
+# scanning them synchronously
+# outputs info is the initial state on iteration
 results = th.scan(lambda y,p,x_tm1 : T.tanh(T.dot(x_tm1,W) + T.dot(y,U) + T.dot(p,V)),
                           sequences = [Y,P[::-1]], outputs_info=[X])[0]
+compute_seq = th.function([X,W,Y,U,P,V], results)
+
+x = np.zeros((2), dtype=th.config.floatX)
+x[1] = 1
+w = np.ones((2,2), dtype=th.config.floatX)
+y = np.ones((5,2), dtype = th.config.floatX)
+y[0,:] = -3
+u = np.ones((2,2), dtype = th.config.floatX)
+p = np.ones((5,2), dtype = th.config.floatX)
+p[0,:] = 3
+v = np.ones((2,2), dtype = th.config.floatX)
+
+print compute_seq(x,w,y,u,p,v)
+
+# comparison with numpy
+
+x_res = np.zeros((5,2), dtype=th.config.floatX)
+x_res[0] = np.tanh(x.dot(w) + y[0].dot(u) + p[4].dot(v))
+for i in range(1,5):
+    x_res[i] = np.tanh(x_res[i-1].dot(w) + y[i].dot(u) + p[4-i].dot(v))
+print x_res
+
+
 
 
