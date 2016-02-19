@@ -139,6 +139,29 @@ for i in range(1,5):
     x_res[i] = np.tanh(x_res[i-1].dot(w) + y[i].dot(u) + p[4-i].dot(v))
 print x_res
 
+# computing the norms of rows of X
+
+X = T.matrix()
+results = th.scan(lambda x_i : T.sqrt((x_i ** 2).sum()), sequences=[X])[0]
+compute_norm_lines = th.function([X], results)
+
+# how does this feature of diag work?
+
+x = np.diag(np.arange(1,6, dtype=th.config.floatX), 1)
+print compute_norm_lines(x)
+
+# comparison with numpy
+
+print np.sqrt((x ** 2).sum(1))
+
+# computing the norms of columns of X
+
+X = T.matrix()
+results = th.scan(lambda x_i: T.sqrt((x_i ** 2).sum()), sequences = [X.T])[0]
+compute_norm_cols = th.function([X], results)
+
+x = np.diag(np.arange(1, 6, dtype=th.config.floatX), 1)
+print compute_norm_cols(x)
 
 
 
