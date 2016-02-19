@@ -145,12 +145,14 @@ X = T.matrix()
 results = th.scan(lambda x_i : T.sqrt((x_i ** 2).sum()), sequences=[X])[0]
 compute_norm_lines = th.function([X], results)
 
-# how does this feature of diag work?
+# the second argument of diag puts it off the main diagonal
 
 x = np.diag(np.arange(1,6, dtype=th.config.floatX), 1)
 print compute_norm_lines(x)
 
 # comparison with numpy
+
+# sum on columns to get norm of rows
 
 print np.sqrt((x ** 2).sum(1))
 
@@ -163,5 +165,11 @@ compute_norm_cols = th.function([X], results)
 x = np.diag(np.arange(1, 6, dtype=th.config.floatX), 1)
 print compute_norm_cols(x)
 
+# comparison with numpy
 
+# sum on rows to get norm of columns
+
+print np.sqrt((x ** 2).sum(0))
+
+# trace example
 
