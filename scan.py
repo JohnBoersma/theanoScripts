@@ -194,3 +194,9 @@ x[0] = np.arange(5, dtype=floatX)
 
 print x
 print compute_trace(x)
+
+# compariison with numpy
+
+print np.diagonal(x).sum()
+
+
