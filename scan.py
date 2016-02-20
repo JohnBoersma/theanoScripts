@@ -240,4 +240,13 @@ v = T.vector()
 A = T.matrix()
 y = T.tanh(T.dot(v,A))
 
+# need to understand from here
+
+results = th.scan(lambda i : T.grad(y[i], v), sequences=[T.arange(y.shape[0])])[0]
+compute_jac_t = th.function([A,v], results)
+
+x = np.eye(5, dtype=floatX)[0]
+w = np.eye(5,3, dtype=floatX)
+w[2] = np.ones((3), dtype=floatX)
+print compute_jac_t(w,x)
 
