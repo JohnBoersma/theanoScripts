@@ -173,9 +173,8 @@ print np.sqrt((x ** 2).sum(0))
 
 print '\nComputing a trace\n'
 
-# what is this for?
-
-floatX = 'float32'
+#th.config.floatX = 'float32'
+floatX = th.config.floatX
 
 X = T.matrix()
 
@@ -183,7 +182,7 @@ X = T.matrix()
 # why needed?
 # asked on stack overflow
 
-results = th.scan(lambda i,j,t_f : T.cast(X[i,j] + t_f, floatX),
+results = th.scan(lambda i,j,t_f : X[i,j] + t_f,
                           sequences=[T.arange(X.shape[0]), T.arange(X.shape[1])],
                           outputs_info=np.asarray(0., dtype=floatX))[0]
 result = results[-1]
