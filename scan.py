@@ -240,13 +240,26 @@ v = T.vector()
 A = T.matrix()
 y = T.tanh(T.dot(v,A))
 
-# need to understand from here
+# for some reason related to the scan internals
+# we need to iterate over the indices of y rather
+# than over the elements of y itself
 
 results = th.scan(lambda i : T.grad(y[i], v), sequences=[T.arange(y.shape[0])])[0]
 compute_jac_t = th.function([A,v], results)
 
 x = np.eye(5, dtype=floatX)[0]
+
+# second parameter of eye is the number
+# of columns if different from the number of rows
+
 w = np.eye(5,3, dtype=floatX)
 w[2] = np.ones((3), dtype=floatX)
 print compute_jac_t(w,x)
+
+# compare with numpy
+
+print ((1 - np.tanh(x.dot(w)) ** 2) * w).T
+
+print '\nAccumulate number of loops during a scan'
+
 
