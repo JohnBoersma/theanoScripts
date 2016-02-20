@@ -208,6 +208,37 @@ U = T.matrix()
 V = T.matrix()
 n_sym = T.iscalar()
 
+# the tutorail uses alternative dictionary syntax dict(initial=X, taps=[-2,-1])
+
 results = th.scan(lambda x_tm2, x_tm1 : T.dot(x_tm2,U) + T.dot(x_tm1,V) + T.tanh(T.dot(x_tm1,W) + b_sym),
-    n_steps=n_sym, outputs_info=[dict(initial=X, taps=[-2,-1])])
+                          n_steps=n_sym, outputs_info=[{'initial':X, 'taps':[-2,-1]}])[0]
+compute_seq2 = th.function([X,U,V,W,b_sym,n_sym], results)
+
+x = np.zeros((2,2), dtype = th.config.floatX)
+x[1,1] = 1
+w = 0.5 * np.ones((2,2), dtype=th.config.floatX)
+u = 0.5 * (np.ones((2,2), dtype=th.config.floatX) - np.eye(2, dtype=th.config.floatX))
+v = 0.5 * np.ones((2,2), dtype=th.config.floatX)
+n = 10
+b = np.ones((2), dtype=th.config.floatX)
+
+print compute_seq2(x,u,v,w,b,n)
+
+# comparison with numpy
+
+x_res = np.zeros((10,2))
+x_res[0] = x[0].dot(u) + x[1].dot(v) + np.tanh(x[1].dot(w) + b)
+x_res[1] = x[1].dot(u) + x_res[0].dot(v) + np.tanh(x_res[0].dot(w) + b)
+x_res[2] = x_res[0].dot(u) + x_res[1].dot(v) + np.tanh(x_res[1].dot(w) + b)
+for i in range(2,10):
+    x_res[i] = (x_res[i-2].dot(u) + x_res[i-1].dot(v) + 
+                     np.tanh(x_res[i-1].dot(w) + b ))
+print x_res
+
+print '\nJacobian of tanh example\n'
+
+v = T.vector()
+A = T.matrix()
+y = T.tanh(T.dot(v,A))
+
 
