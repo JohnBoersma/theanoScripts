@@ -171,5 +171,26 @@ print compute_norm_cols(x)
 
 print np.sqrt((x ** 2).sum(0))
 
-# trace example
+print '\nComputing a trace\n'
 
+# what is this for?
+
+floatX = 'float32'
+
+X = T.matrix()
+
+# cast changes the type of a tensor
+# why needed?
+# asked on stack overflow
+
+results = th.scan(lambda i,j,t_f : T.cast(X[i,j] + t_f, floatX),
+                          sequences=[T.arange(X.shape[0]), T.arange(X.shape[1])],
+                          outputs_info=np.asarray(0., dtype=floatX))[0]
+result = results[-1]
+compute_trace = th.function([X], result)
+
+x = np.eye(5, dtype=floatX)
+x[0] = np.arange(5, dtype=floatX)
+
+print x
+print compute_trace(x)
