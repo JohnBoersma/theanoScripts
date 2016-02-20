@@ -199,4 +199,15 @@ print compute_trace(x)
 
 print np.diagonal(x).sum()
 
+print '\nx(t) = x(t-2).dot(U) + x(t-1).dot(V) + tanh(x(t-1).dot(W) + b)\n'
+
+X = T.matrix()
+W = T.matrix()
+b_sym = T.vector()
+U = T.matrix()
+V = T.matrix()
+n_sym = T.iscalar()
+
+results = th.scan(lambda x_tm2, x_tm1 : T.dot(x_tm2,U) + T.dot(x_tm1,V) + T.tanh(T.dot(x_tm1,W) + b_sym),
+    n_steps=n_sym, outputs_info=[dict(initial=X, taps=[-2,-1])])
 
