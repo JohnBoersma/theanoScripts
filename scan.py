@@ -262,17 +262,19 @@ print ((1 - np.tanh(x.dot(w)) ** 2) * w).T
 
 print '\nAccumulate number of loops during a scan'
 
-# need to fix from here
+# set initial value of shared variable
 
 k = th.shared(0)
 n_sym = T.iscalar()
 
-results = th.scan(lambda : {k:(k+1)}, n_steps = n_sym)[0]
-accumulator = th.function([n_sym], [])
+# need to fix / understand from here
 
-k.get_value()
+results, updates = th.scan(lambda : {k:(k+1)}, n_steps = n_sym)
+accumulator = th.function([n_sym], [], updates = updates, allow_input_downcast=True )
+
+print k.get_value()
 accumulator(5)
-k.get_value()
+print k.get_value()
 
 
 
