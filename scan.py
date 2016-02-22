@@ -178,9 +178,9 @@ floatX = th.config.floatX
 
 X = T.matrix()
 
-# cast changes the type of a tensor
-# why needed?
-# asked on stack overflow
+# tutorial version uses cast for
+# consistent typing of scan internals -
+# this seems better
 
 results = th.scan(lambda i,j,t_f : X[i,j] + t_f,
                           sequences=[T.arange(X.shape[0]), T.arange(X.shape[1])],
@@ -291,23 +291,27 @@ accumulator = th.function([n_sym], result)
 
 print accumulator(17)
 
-print '\ntanh(v.dot(W) + b) * d where d is binomial'
+print '\ntanh(v.dot(W) + b * d) where d is binomial\n'
 
 X = T.matrix()
 W = T.matrix()
 b_sym = T.vector()
 floatX = th.config.floatX
 
-# what's this exactly?
 # define shared random stream
+# symbolic stand-in for np.random.RandomState
+# with seed for repeatable results
+
 trng = T.shared_randomstreams.RandomStreams(1234)
-d = trng.binomial(size=W[1].shape)
+
+# defaults for binomial distribution p = 0.5
+
+d = trng.binomial(size=W[1].shape, p=0.5)
 
 # if random variables that are not updated in scan loops are wanted
 # pass as non_sequences
 # the tutorial example has the noise on the tanh - this does not 
 # seem like bnoise. Fixing it.
-# should calculate this by hand to confirm?
 
 results = th.scan(lambda v: T.tanh(T.dot(v,W) + b_sym * d), sequences=X)[0]
 compute_with_bnoise = th.function([X,W,b_sym], results)
@@ -320,9 +324,8 @@ print compute_with_bnoise(x,w,b)
 
 print '\ncomputing pow(A,k)\n'
 
-# what's this all about?
-
-th.config.warn.subtensor_merge_bug = False
+# this is in the tutorial but seems unnecessary
+# th.config.warn.subtensor_merge_bug = False
 
 k = T.iscalar()
 A = T.vector()
@@ -330,7 +333,9 @@ A = T.vector()
 def inner_fct(prior_result, B):
     return prior_result * B
 
-# what is T.ones_like()?
+# T.ones_like(A) creates a tensor
+# filled with ones with same shape
+# as A 
 
 result = th.scan(inner_fct, outputs_info=T.ones_like(A), non_sequences=A, n_steps=k)[0]
 final_result = result[-1]
@@ -338,3 +343,28 @@ final_result = result[-1]
 power = th.function([A,k], final_result)
 
 print power(range(10), 2)
+
+print '\ncalculating a polynomial\n'
+
+coefficients = T.vector()
+x = T.scalar()
+max_coefficients_supported = 10000
+
+# generate the components of the polynomial
+# this example generates 1 * 3 **0 + 0 * 3 ** 1 + 2 * 3 **2
+
+full_range = T.arange(max_coefficients_supported)
+components = th.scan(lambda coeff, power, free_var : 
+                                    coeff * (free_var ** power),
+                                    outputs_info = None,
+                                    sequences=[coefficients, full_range],
+                                    non_sequences=x)[0]
+polynomial = components.sum()
+calculate_polynomial = th.function([coefficients,x], polynomial)
+test_coeff = np.asarray([1,0,2], dtype=np.float32)
+print calculate_polynomial(test_coeff, 3)
+
+print '\nexercise - reduction done by scan\n'
+
+
+
