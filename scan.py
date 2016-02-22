@@ -269,12 +269,27 @@ n_sym = T.iscalar()
 
 # need to fix / understand from here
 
+# note this form of lamda function with dictionary
+# as update
+
 results, updates = th.scan(lambda : {k:(k+1)}, n_steps = n_sym)
-accumulator = th.function([n_sym], [], updates = updates, allow_input_downcast=True )
+
+# in this form, the resulting transformation is passed as update
+
+accumulator = th.function([n_sym], [], updates = updates)
 
 print k.get_value()
-accumulator(5)
+accumulator(17)
 print k.get_value()
+
+# now without update
+
+n_sym = T.iscalar()
+
+result = th.scan(lambda j : j+1, outputs_info = 0, n_steps = n_sym)[0][-1]
+accumulator = th.function([n_sym], result)
+
+print accumulator(17)
 
 
 
