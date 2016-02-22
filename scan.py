@@ -291,6 +291,50 @@ accumulator = th.function([n_sym], result)
 
 print accumulator(17)
 
+print '\ntanh(v.dot(W) + b) * d where d is binomial'
 
+X = T.matrix()
+W = T.matrix()
+b_sym = T.vector()
+floatX = th.config.floatX
 
+# what's this exactly?
+# define shared random stream
+trng = T.shared_randomstreams.RandomStreams(1234)
+d = trng.binomial(size=W[1].shape)
 
+# if random variables that are not updated in scan loops are wanted
+# pass as non_sequences
+# the tutorial example has the noise on the tanh - this does not 
+# seem like bnoise. Fixing it.
+# should calculate this by hand to confirm?
+
+results = th.scan(lambda v: T.tanh(T.dot(v,W) + b_sym * d), sequences=X)[0]
+compute_with_bnoise = th.function([X,W,b_sym], results)
+
+x = np.eye(10,2, dtype=floatX)
+w = np.ones((2,2), dtype=floatX)
+b = np.ones((2), dtype=floatX)
+
+print compute_with_bnoise(x,w,b)
+
+print '\ncomputing pow(A,k)\n'
+
+# what's this all about?
+
+th.config.warn.subtensor_merge_bug = False
+
+k = T.iscalar()
+A = T.vector()
+
+def inner_fct(prior_result, B):
+    return prior_result * B
+
+# what is T.ones_like()?
+
+result = th.scan(inner_fct, outputs_info=T.ones_like(A), non_sequences=A, n_steps=k)[0]
+final_result = result[-1]
+
+power = th.function([A,k], final_result)
+
+print power(range(10), 2)
