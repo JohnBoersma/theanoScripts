@@ -7,7 +7,7 @@
     can iterate over loops, over a tensor, elements of a vector, etc
 '''
 
-# pylint: disable = bad-whitespace, invalid-name, no-member
+# pylint: disable = bad-whitespace, invalid-name, no-member, bad-continuation, assignment-from-no-return
 
 import numpy as np
 import theano as th
@@ -90,11 +90,11 @@ x = np.eye(2, dtype=th.config.floatX)
 w = np.ones((2,2), dtype=th.config.floatX)
 b = np.ones((2), dtype=th.config.floatX)
 
-print (compute_elementwise(x,w,b))
+print compute_elementwise(x,w,b)
 
 #comparison with numpy
 
-print (np.tanh(x.dot(w) + b))
+print np.tanh(x.dot(w) + b)
 
 print '\nx(t) = tanh(x(t-1).dot(W) + y(t).dot(U) + p(T-t).dot(V))\n'
 
@@ -110,9 +110,9 @@ P = T.matrix()
 # that is, the initialization state the first time
 # and the output each other time
 
-# [::-1] is an example of Python "step" or "stride" slicing. 
+# [::-1] is an example of Python "step" or "stride" slicing.
 #  with -1, his reverses the order of a list
-# scanning over two variables means 
+# scanning over two variables means
 # scanning them synchronously
 # outputs info is the initial state on iteration
 results = th.scan(lambda y,p,x_tm1 : T.tanh(T.dot(x_tm1,W) + T.dot(y,U) + T.dot(p,V)),
@@ -209,7 +209,8 @@ n_sym = T.iscalar()
 
 # the tutorail uses alternative dictionary syntax dict(initial=X, taps=[-2,-1])
 
-results = th.scan(lambda x_tm2, x_tm1 : T.dot(x_tm2,U) + T.dot(x_tm1,V) + T.tanh(T.dot(x_tm1,W) + b_sym),
+results = th.scan(lambda x_tm2, x_tm1 : T.dot(x_tm2,U) + T.dot(x_tm1,V) +
+                              T.tanh(T.dot(x_tm1,W) + b_sym),
                           n_steps=n_sym, outputs_info=[{'initial':X, 'taps':[-2,-1]}])[0]
 compute_seq2 = th.function([X,U,V,W,b_sym,n_sym], results)
 
@@ -230,7 +231,7 @@ x_res[0] = x[0].dot(u) + x[1].dot(v) + np.tanh(x[1].dot(w) + b)
 x_res[1] = x[1].dot(u) + x_res[0].dot(v) + np.tanh(x_res[0].dot(w) + b)
 x_res[2] = x_res[0].dot(u) + x_res[1].dot(v) + np.tanh(x_res[1].dot(w) + b)
 for i in range(2,10):
-    x_res[i] = (x_res[i-2].dot(u) + x_res[i-1].dot(v) + 
+    x_res[i] = (x_res[i-2].dot(u) + x_res[i-1].dot(v) +
                      np.tanh(x_res[i-1].dot(w) + b ))
 print x_res
 
@@ -310,7 +311,7 @@ d = trng.binomial(size=W[1].shape, p=0.5)
 
 # if random variables that are not updated in scan loops are wanted
 # pass as non_sequences
-# the tutorial example has the noise on the tanh - this does not 
+# the tutorial example has the noise on the tanh - this does not
 # seem like bnoise. Fixing it.
 
 results = th.scan(lambda v: T.tanh(T.dot(v,W) + b_sym * d), sequences=X)[0]
@@ -331,11 +332,12 @@ k = T.iscalar()
 A = T.vector()
 
 def inner_fct(prior_result, B):
+    ''' interative powers '''
     return prior_result * B
 
 # T.ones_like(A) creates a tensor
 # filled with ones with same shape
-# as A 
+# as A
 
 result = th.scan(inner_fct, outputs_info=T.ones_like(A), non_sequences=A, n_steps=k)[0]
 final_result = result[-1]
@@ -354,7 +356,7 @@ max_coefficients_supported = 10000
 # this example generates 1 * 3 **0 + 0 * 3 ** 1 + 2 * 3 **2
 
 full_range = T.arange(max_coefficients_supported)
-components = th.scan(lambda coeff, power, free_var : 
+components = th.scan(lambda coeff, power, free_var :
                                     coeff * (free_var ** power),
                                     outputs_info = None,
                                     sequences=[coefficients, full_range],
@@ -363,8 +365,6 @@ polynomial = components.sum()
 calculate_polynomial = th.function([coefficients,x], polynomial)
 test_coeff = np.asarray([1,0,2], dtype=np.float32)
 print calculate_polynomial(test_coeff, 3)
-
-print '\nexercise - reduction done by scan\n'
 
 
 
